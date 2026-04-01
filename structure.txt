@@ -1,0 +1,32 @@
+.
+├── Dockerfile
+├── README.md
+├── backend
+│   ├── data
+│   │   ├── 1001a-influencer-guide-508_1.pdf
+│   │   └── youtube-ad-specs.pdf
+│   ├── scripts
+│   │   ├── explanation.txt
+│   │   └── index_documents.py
+│   ├── src
+│   │   ├── api
+│   │   │   ├── __init__.py
+│   │   │   ├── server.py
+│   │   │   └── telemetry.py
+│   │   ├── graph
+│   │   │   ├── __init__.py
+│   │   │   ├── nodes.py
+│   │   │   ├── state.py
+│   │   │   └── workflow.py
+│   │   └── services
+│   │       ├── __init__.py
+│   │       └── video_indexer.py
+│   └── tests
+├── basic.txt
+├── main.py
+├── metadata.txt
+├── pyproject.toml
+├── structure.txt
+└── uv.lock
+
+9 directories, 21 files

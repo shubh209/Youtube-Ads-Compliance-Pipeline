@@ -1,0 +1,44 @@
+-> Storage
+Subscription - Azure for Students
+Resource group - LLM-yt
+Location- East US
+Storage account name - shubhllmproject
+Preferred storage type - Azure Blob Storage or Azure Data Lake Storage Gen 2
+Primary workload
+Performance - Standard
+Replication - Locally-redundant storage (LRS)
+
+
+->Azure openai
+Subscription - Azure for Students
+Resource group - LLM-yt
+Name - shubh-llm-api-project
+Region - East US
+Default project name - proj-default
+
+
+->Azure AI search
+Subscription - Azure for Students
+Resource Group - LLM-yt
+Location - Central US
+Service name - shubh-llm-ai-search
+Pricing tier - Free (50 MB, max 1 replicas, max 1 partitions, max 1 search units)
+Estimated cost per month - $0.00
+Compute type - Default
+
+
+->Azure applications insights
+Subscription - Azure for Students
+Resource Group - LLM-yt
+Name - shubh-llm-insights-project
+Region - East US
+Log Analytics Workspace - DefaultWorkspace-b5c0eb3b-2de1-4ffe-a9e3-1831909dee88-EUS [eastus]
+
+
+->Azure Video Indexer
+Subscription - Azure for Students
+Resource group - LLM-yt
+Resource name - shubh-llm-indexer-project
+Region - eastus
+Storage account - shubhllmproject
+System assigned identity - Assigned
