@@ -1,6 +1,0 @@
-brand ads -> videos
-videos -> images + speech + text
-url -> download video -> azure blob storage
-azure ai search -> vector db service -> PDF Data
-azure video indexer -> OCR -> claims (text on screen) + transcript (dialogues)
-azure application insights -> tracking/logs

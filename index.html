@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brand Guardian AI — YouTube Ad Compliance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #08090c;
+    --surface:   #0e1017;
+    --border:    #1e2235;
+    --border2:   #2a3050;
+    --text:      #e8ecf7;
+    --muted:     #5a6285;
+    --accent:    #00e5b0;
+    --accent2:   #4f6aff;
+    --warn:      #ffba00;
+    --danger:    #ff4060;
+    --ok:        #00e5b0;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Ambient background mesh */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 10% 0%, rgba(79,106,255,.12) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 90% 100%, rgba(0,229,176,.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    background: rgba(8,9,12,.85);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -.01em;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: .85rem;
+  }
+  .logo-sub {
+    font-family: var(--font-mono);
+    font-size: .65rem;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: -2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .status-pill {
+    font-size: .65rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 99px;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeUp .6s ease both;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .65rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(0,229,176,.25);
+    border-radius: 99px;
+    padding: 4px 12px;
+    margin-bottom: 1.25rem;
+    background: rgba(0,229,176,.05);
+  }
+  h1 {
+    font-family: var(--font-head);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin-bottom: .75rem;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    color: var(--muted);
+    font-size: .85rem;
+    line-height: 1.7;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* ── INPUT CARD ── */
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    animation: fadeUp .6s .1s ease both;
+  }
+  .input-label {
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .input-row {
+    display: flex;
+    gap: .75rem;
+  }
+  input[type="url"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: .8rem 1.1rem;
+    font-family: var(--font-mono);
+    font-size: .85rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s;
+  }
+  input[type="url"]::placeholder { color: var(--muted); }
+  input[type="url"]:focus { border-color: var(--accent2); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    padding: .8rem 1.6rem;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: .85rem;
+    letter-spacing: .02em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity .2s, transform .1s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary:hover { opacity: .9; }
+  .btn-primary:active { transform: scale(.97); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+  .hint-row {
+    margin-top: .75rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .hint-chip {
+    font-size: .65rem;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+  .hint-chip:hover { border-color: var(--accent2); color: var(--text); }
+
+  /* ── PIPELINE STRIP ── */
+  .pipeline-strip {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .9rem 1.5rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    animation: fadeUp .6s .2s ease both;
+  }
+  .pipe-node {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-shrink: 0;
+  }
+  .pipe-dot {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    display: grid;
+    place-items: center;
+    font-size: .75rem;
+    color: var(--muted);
+    background: var(--bg);
+    transition: all .3s;
+    position: relative;
+  }
+  .pipe-label {
+    font-size: .7rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition: color .3s;
+  }
+  .pipe-arrow {
+    color: var(--border2);
+    margin: 0 .75rem;
+    font-size: .8rem;
+    flex-shrink: 0;
+  }
+
+  /* active pipeline states */
+  .pipe-node.active .pipe-dot {
+    border-color: var(--accent2);
+    background: rgba(79,106,255,.15);
+    color: var(--accent2);
+    box-shadow: 0 0 14px rgba(79,106,255,.3);
+  }
+  .pipe-node.active .pipe-label { color: var(--accent2); }
+
+  .pipe-node.done .pipe-dot {
+    border-color: var(--accent);
+    background: rgba(0,229,176,.12);
+    color: var(--accent);
+  }
+  .pipe-node.done .pipe-label { color: var(--accent); }
+
+  .pipe-node.error .pipe-dot {
+    border-color: var(--danger);
+    background: rgba(255,64,96,.12);
+    color: var(--danger);
+  }
+
+  /* Spinner for active node */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .pipe-node.active .pipe-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 11px;
+    border: 2px solid transparent;
+    border-top-color: var(--accent2);
+    animation: spin .8s linear infinite;
+  }
+
+  /* ── GRID ── */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    animation: fadeUp .6s .3s ease both;
+  }
+  @media(max-width:700px){ .grid-2{ grid-template-columns:1fr; } }
+
+  /* ── PANELS ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: .8rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+  }
+  .panel-title {
+    font-size: .7rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-body { padding: 1.25rem; }
+
+  /* ── VIOLATIONS LIST ── */
+  .violation-list { display: flex; flex-direction: column; gap: .6rem; }
+  .violation-item {
+    border-radius: 10px;
+    padding: .9rem 1rem;
+    border: 1px solid transparent;
+    display: flex;
+    gap: .75rem;
+    align-items: flex-start;
+    animation: slideIn .3s ease both;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:none} }
+
+  .violation-item.critical {
+    background: rgba(255,64,96,.07);
+    border-color: rgba(255,64,96,.2);
+  }
+  .violation-item.warning {
+    background: rgba(255,186,0,.06);
+    border-color: rgba(255,186,0,.18);
+  }
+  .violation-item.info {
+    background: rgba(79,106,255,.07);
+    border-color: rgba(79,106,255,.18);
+  }
+  .violation-item.pass {
+    background: rgba(0,229,176,.06);
+    border-color: rgba(0,229,176,.18);
+  }
+
+  .v-badge {
+    font-size: .6rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 5px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .critical .v-badge { background: rgba(255,64,96,.2); color: var(--danger); }
+  .warning .v-badge  { background: rgba(255,186,0,.2); color: var(--warn); }
+  .info .v-badge     { background: rgba(79,106,255,.2); color: var(--accent2); }
+  .pass .v-badge     { background: rgba(0,229,176,.15); color: var(--ok); }
+
+  .v-content { flex: 1; }
+  .v-category {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+    font-family: var(--font-head);
+  }
+  .v-desc { font-size: .72rem; color: var(--muted); line-height: 1.5; }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    animation: fadeUp .6s .25s ease both;
+  }
+  @media(max-width:600px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+  }
+  .stat-label {
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin-bottom: .35rem;
+  }
+  .stat-value {
+    font-family: var(--font-head);
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .stat-value.green { color: var(--ok); }
+  .stat-value.red   { color: var(--danger); }
+  .stat-value.yellow{ color: var(--warn); }
+  .stat-value.blue  { color: var(--accent2); }
+  .stat-sub { font-size: .62rem; color: var(--muted); margin-top: .2rem; }
+
+  /* ── LOG PANEL ── */
+  .log-box {
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: .72rem;
+    line-height: 1.8;
+    padding: 1rem;
+    max-height: 220px;
+    overflow-y: auto;
+    color: var(--muted);
+  }
+  .log-line { display: flex; gap: .75rem; }
+  .log-time { color: var(--border2); flex-shrink: 0; }
+  .log-ok   { color: var(--ok); }
+  .log-warn { color: var(--warn); }
+  .log-err  { color: var(--danger); }
+  .log-info { color: var(--accent2); }
+
+  /* ── SUMMARY BOX ── */
+  .summary-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    animation: fadeUp .6s .35s ease both;
+  }
+  .summary-title {
+    font-family: var(--font-head);
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .summary-text {
+    font-size: .82rem;
+    line-height: 1.8;
+    color: var(--text);
+  }
+  .verdict-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 1rem;
+    padding: .55rem 1.1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+  .verdict-badge.pass-verdict {
+    background: rgba(0,229,176,.12);
+    border: 1px solid rgba(0,229,176,.3);
+    color: var(--ok);
+  }
+  .verdict-badge.fail-verdict {
+    background: rgba(255,64,96,.1);
+    border: 1px solid rgba(255,64,96,.25);
+    color: var(--danger);
+  }
+
+  /* ── IDLE STATE ── */
+  .idle-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+    font-size: .8rem;
+    line-height: 1.8;
+  }
+  .idle-icon {
+    font-size: 2.5rem;
+    margin-bottom: .75rem;
+    opacity: .5;
+  }
+
+  /* ── ARCHITECTURE SECTION ── */
+  .arch-section {
+    margin-top: 2.5rem;
+    animation: fadeUp .6s .4s ease both;
+  }
+  .arch-title {
+    font-family: var(--font-head);
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .75rem;
+  }
+  @media(max-width:640px){ .arch-grid{ grid-template-columns:1fr 1fr; } }
+
+  .arch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    gap: .75rem;
+    align-items: flex-start;
+    transition: border-color .2s;
+  }
+  .arch-card:hover { border-color: var(--border2); }
+  .arch-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .arch-name {
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+    font-family: var(--font-head);
+  }
+  .arch-desc { font-size: .65rem; color: var(--muted); line-height: 1.5; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <div>
+      Brand Guardian AI
+      <span class="logo-sub">YouTube Ad Compliance Pipeline</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill">
+      <span class="status-dot"></span>
+      LangGraph · Azure AI
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">🔍 Powered by Azure Video Indexer + GPT-4o</div>
+    <h1>Audit YouTube Ads for<br/><em>Policy Compliance</em></h1>
+    <p class="hero-sub">
+      Paste any YouTube ad URL. The pipeline downloads it, extracts transcript &amp; on-screen text via Azure Video Indexer, retrieves relevant compliance rules, and generates a detailed violation report.
+    </p>
+  </div>
+
+  <!-- INPUT CARD -->
+  <div class="input-card">
+    <div class="input-label">📎 YouTube Ad URL</div>
+    <div class="input-row">
+      <input type="url" id="urlInput" placeholder="https://youtu.be/dT7S75eYhcQ" />
+      <button class="btn-primary" id="auditBtn" onclick="startAudit()">
+        ▶ Run Audit
+      </button>
+    </div>
+    <div class="hint-row">
+      <span class="hint-label" style="font-size:.65rem;color:var(--muted);display:flex;align-items:center">Try examples →</span>
+      <span class="hint-chip" onclick="setUrl('https://youtu.be/dT7S75eYhcQ')">Demo Ad #1</span>
+      <span class="hint-chip" onclick="setUrl('https://youtu.be/example2')">Demo Ad #2</span>
+      <span class="hint-chip" onclick="setUrl('https://youtu.be/example3')">Demo Ad #3</span>
+    </div>
+  </div>
+
+  <!-- PIPELINE STRIP -->
+  <div class="pipeline-strip">
+    <div class="pipe-node" id="pn-fetch">
+      <div class="pipe-dot">⬇</div>
+      <span class="pipe-label">Download</span>
+    </div>
+    <div class="pipe-arrow">──▶</div>
+    <div class="pipe-node" id="pn-blob">
+      <div class="pipe-dot">🗄</div>
+      <span class="pipe-label">Blob Storage</span>
+    </div>
+    <div class="pipe-arrow">──▶</div>
+    <div class="pipe-node" id="pn-indexer">
+      <div class="pipe-dot">🎬</div>
+      <span class="pipe-label">Video Indexer</span>
+    </div>
+    <div class="pipe-arrow">──▶</div>
+    <div class="pipe-node" id="pn-ocr">
+      <div class="pipe-dot">👁</div>
+      <span class="pipe-label">OCR + Transcript</span>
+    </div>
+    <div class="pipe-arrow">──▶</div>
+    <div class="pipe-node" id="pn-retrieval">
+      <div class="pipe-dot">🔍</div>
+      <span class="pipe-label">Rules Retrieval</span>
+    </div>
+    <div class="pipe-arrow">──▶</div>
+    <div class="pipe-node" id="pn-audit">
+      <div class="pipe-dot">🤖</div>
+      <span class="pipe-label">AI Auditor</span>
+    </div>
+    <div class="pipe-arrow">──▶</div>
+    <div class="pipe-node" id="pn-report">
+      <div class="pipe-dot">📋</div>
+      <span class="pipe-label">Report</span>
+    </div>
+  </div>
+
+  <!-- STATS ROW (hidden until results) -->
+  <div class="stats-row" id="statsRow" style="display:none">
+    <div class="stat-card">
+      <div class="stat-label">Verdict</div>
+      <div class="stat-value" id="statVerdict" style="font-size:1.1rem">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Critical Issues</div>
+      <div class="stat-value red" id="statCritical">0</div>
+      <div class="stat-sub">Require immediate fix</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Warnings</div>
+      <div class="stat-value yellow" id="statWarnings">0</div>
+      <div class="stat-sub">Review recommended</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Rules Checked</div>
+      <div class="stat-value blue" id="statRules">—</div>
+      <div class="stat-sub">From compliance docs</div>
+    </div>
+  </div>
+
+  <!-- RESULTS GRID -->
+  <div class="grid-2" id="resultsGrid" style="display:none">
+    <!-- Violations -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">⚠ Compliance Violations</div>
+        <div id="violCount" style="font-size:.65rem;color:var(--muted)"></div>
+      </div>
+      <div class="panel-body">
+        <div class="violation-list" id="violationList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Live log -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">📡 Pipeline Log</div>
+        <div style="font-size:.6rem;color:var(--accent);letter-spacing:.06em">LIVE</div>
+      </div>
+      <div class="panel-body" style="padding:0">
+        <div class="log-box" id="logBox">
+          <div class="log-line"><span class="log-time">--:--:--</span><span>Waiting for audit request…</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IDLE STATE (shown initially) -->
+  <div id="idleState">
+    <div class="idle-state">
+      <div class="idle-icon">🎬</div>
+      <div>Enter a YouTube ad URL above to begin the compliance audit.</div>
+      <div style="margin-top:.4rem;font-size:.7rem">The pipeline will extract speech, on-screen text, compare against<br/>YouTube Ad Policies &amp; FTC influencer guidelines, and surface violations.</div>
+    </div>
+  </div>
+
+  <!-- SUMMARY (hidden until done) -->
+  <div class="summary-box" id="summaryBox" style="display:none">
+    <div class="summary-title">📝 Final Audit Report</div>
+    <div id="verdictBadge"></div>
+    <div class="summary-text" id="summaryText"></div>
+  </div>
+
+  <!-- ARCHITECTURE OVERVIEW -->
+  <div class="arch-section">
+    <div class="arch-title">⚙ Pipeline Architecture</div>
+    <div class="arch-grid">
+      <div class="arch-card">
+        <div class="arch-icon">⬇</div>
+        <div>
+          <div class="arch-name">Video Ingestion</div>
+          <div class="arch-desc">Downloads YouTube ad → uploads to Azure Blob Storage for durable processing</div>
+        </div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">🎬</div>
+        <div>
+          <div class="arch-name">Azure Video Indexer</div>
+          <div class="arch-desc">Extracts speech transcript + OCR (on-screen text claims) from the video</div>
+        </div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">🔍</div>
+        <div>
+          <div class="arch-name">Azure AI Search</div>
+          <div class="arch-desc">Vector search over YouTube Ad Specs PDF + FTC Influencer Guide for relevant rules</div>
+        </div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">🤖</div>
+        <div>
+          <div class="arch-name">GPT-4o Auditor</div>
+          <div class="arch-desc">LangGraph node that reasons over transcript + rules to detect policy violations</div>
+        </div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">📊</div>
+        <div>
+          <div class="arch-name">App Insights</div>
+          <div class="arch-desc">Telemetry, tracing & structured logging for every pipeline run</div>
+        </div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">📋</div>
+        <div>
+          <div class="arch-name">Compliance Report</div>
+          <div class="arch-desc">Severity-graded violations with PASS/FAIL verdict + natural language summary</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+// Change this if your backend runs on a different host/port
+const API_BASE = 'http://localhost:8000';
+
+// ── PIPELINE NODES (in order) ────────────────────────────────────────────────
+const PIPE_NODES = ['pn-fetch','pn-blob','pn-indexer','pn-ocr','pn-retrieval','pn-audit','pn-report'];
+
+// Staged log messages tied to real pipeline phases.
+// These fire on timers to give live feedback while the API call is in-flight
+// (Azure Video Indexer takes 1-3 min, so we keep the user informed).
+const PIPELINE_LOGS = [
+  { delay: 500,   cls: 'log-info', msg: '▶ Sending request to Brand Guardian API…',      pipe: 0 },
+  { delay: 1500,  cls: 'log-ok',   msg: '✓ Request accepted — downloading video…',        pipe: 1 },
+  { delay: 8000,  cls: 'log-ok',   msg: '✓ Video downloaded — uploading to Azure…',       pipe: 2 },
+  { delay: 15000, cls: 'log-info', msg: '⏳ Submitted to Azure Video Indexer — processing…', pipe: 3 },
+  { delay: 60000, cls: 'log-ok',   msg: '✓ Video indexed — running OCR + transcript…',    pipe: 4 },
+  { delay: 90000, cls: 'log-info', msg: '🔍 Retrieving compliance rules from AI Search…', pipe: 5 },
+  { delay: 100000,cls: 'log-info', msg: '🤖 GPT-4o Auditor reasoning over content…',      pipe: 6 },
+];
+
+let running = false;
+let pipeTimers = [];
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function setUrl(u) {
+  document.getElementById('urlInput').value = u;
+}
+
+function getTs() {
+  return new Date().toTimeString().slice(0, 8);
+}
+
+function appendLog(cls, msg) {
+  const box = document.getElementById('logBox');
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-time">${getTs()}</span><span class="${cls}">${msg}</span>`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+function resetPipeline() {
+  pipeTimers.forEach(clearTimeout);
+  pipeTimers = [];
+  PIPE_NODES.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'pipe-node';
+  });
+}
+
+function setPipeState(id, state) {
+  const el = document.getElementById(id);
+  if (el) el.className = `pipe-node ${state}`;
+}
+
+function markAllPipelineDone(failed = false) {
+  PIPE_NODES.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.className.includes('active')) {
+      el.className = `pipe-node ${failed ? 'error' : 'done'}`;
+    }
+  });
+}
+
+// ── MAIN AUDIT FUNCTION ──────────────────────────────────────────────────────
+async function startAudit() {
+  if (running) return;
+
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) { document.getElementById('urlInput').focus(); return; }
+
+  if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+    appendLog('log-err', '✖ Please enter a valid YouTube URL.');
+    return;
+  }
+
+  running = true;
+  document.getElementById('auditBtn').disabled = true;
+  document.getElementById('auditBtn').textContent = '⏳ Auditing…';
+
+  // ── Reset UI ──
+  document.getElementById('idleState').style.display = 'none';
+  document.getElementById('statsRow').style.display = 'none';
+  document.getElementById('summaryBox').style.display = 'none';
+  document.getElementById('violationList').innerHTML = '';
+  document.getElementById('violCount').textContent = '';
+  resetPipeline();
+
+  document.getElementById('resultsGrid').style.display = 'grid';
+  document.getElementById('logBox').innerHTML = '';
+  appendLog('log-info', `Session started — url: ${url}`);
+
+  // ── Fire staged pipeline log messages while API call runs ──
+  PIPELINE_LOGS.forEach(({ delay, cls, msg, pipe }) => {
+    const t = setTimeout(() => {
+      appendLog(cls, msg);
+      // advance pipeline strip: mark previous done, current active
+      if (pipe > 0) setPipeState(PIPE_NODES[pipe - 1], 'done');
+      setPipeState(PIPE_NODES[pipe], 'active');
+    }, delay);
+    pipeTimers.push(t);
+  });
+
+  // ── Call the real backend ────────────────────────────────────────────────
+  try {
+    appendLog('log-info', `POST ${API_BASE}/audit`);
+
+    const res = await fetch(`${API_BASE}/audit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ video_url: url }),
+    });
+
+    // Clear staged timers — we have real data now
+    pipeTimers.forEach(clearTimeout);
+    pipeTimers = [];
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    // Mark all pipeline nodes done
+    PIPE_NODES.forEach(id => setPipeState(id, 'done'));
+    appendLog('log-ok', `✓ Audit complete — session: ${data.session_id}`);
+
+    showResults(data);
+
+  } catch (err) {
+    markAllPipelineDone(true);
+    appendLog('log-err', `✖ Error: ${err.message}`);
+
+    // Check for common issues and give helpful hints
+    if (err.message.includes('fetch') || err.message.includes('Failed to fetch')) {
+      appendLog('log-warn', 'Tip: Make sure the server is running →  uv run uvicorn backend.src.api.server:app --reload');
+    }
+
+    document.getElementById('idleState').style.display = 'block';
+    document.getElementById('resultsGrid').style.display = 'none';
+  } finally {
+    running = false;
+    document.getElementById('auditBtn').disabled = false;
+    document.getElementById('auditBtn').innerHTML = '▶ Run Audit';
+  }
+}
+
+// ── RENDER RESULTS ────────────────────────────────────────────────────────────
+function showResults(data) {
+  // Map server field names — server returns "status", state has "final_status"
+  const status   = data.status || data.final_status || 'UNKNOWN';
+  const report   = data.final_report || 'No report generated.';
+  const results  = data.compliance_results || [];
+
+  // Stats bar
+  const crits = results.filter(v => v.severity === 'CRITICAL').length;
+  const warns = results.filter(v => v.severity === 'WARNING').length;
+
+  document.getElementById('statVerdict').textContent  = status;
+  document.getElementById('statVerdict').style.color  = status === 'PASS' ? 'var(--ok)' : 'var(--danger)';
+  document.getElementById('statCritical').textContent = crits;
+  document.getElementById('statWarnings').textContent = warns;
+  document.getElementById('statRules').textContent    = '—';
+  document.getElementById('statsRow').style.display   = 'grid';
+
+  // Violations list
+  const list = document.getElementById('violationList');
+  list.innerHTML = '';
+  document.getElementById('violCount').textContent = `${results.length} issue${results.length !== 1 ? 's' : ''}`;
+
+  if (results.length === 0) {
+    list.innerHTML = `<div class="violation-item pass">
+      <span class="v-badge">PASS</span>
+      <div class="v-content">
+        <div class="v-category">No violations detected</div>
+        <div class="v-desc">The ad content passed all compliance checks.</div>
+      </div></div>`;
+  } else {
+    results.forEach((v, i) => {
+      const cls = v.severity === 'CRITICAL' ? 'critical' : v.severity === 'WARNING' ? 'warning' : 'info';
+      const item = document.createElement('div');
+      item.className = `violation-item ${cls}`;
+      item.style.animationDelay = `${i * 70}ms`;
+      item.innerHTML = `
+        <span class="v-badge">${v.severity}</span>
+        <div class="v-content">
+          <div class="v-category">${v.category}</div>
+          <div class="v-desc">${v.description}</div>
+        </div>`;
+      list.appendChild(item);
+    });
+  }
+
+  // Summary + verdict
+  const isPassed = status === 'PASS';
+  document.getElementById('verdictBadge').innerHTML = `
+    <div class="verdict-badge ${isPassed ? 'pass-verdict' : 'fail-verdict'}">
+      ${isPassed ? '✅ PASS — Ad is Compliant' : '❌ FAIL — Policy Violations Detected'}
+    </div>`;
+  document.getElementById('summaryText').textContent = report;
+  document.getElementById('summaryBox').style.display = 'block';
+}
+
+// Allow Enter key to trigger audit
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startAudit();
+  });
+});
+</script>
+</body>
+</html>
