@@ -1,4 +1,6 @@
+import base64
 import os
+import tempfile
 import time
 import logging
 import requests
@@ -42,26 +44,46 @@ class VideoIndexerService:
 
     # --- NEW FUNCTION: Download from YouTube ---
     def download_youtube_video(self, url, output_path="temp_video.mp4"):
-        """Downloads a YouTube video to a local file."""
-        logger.info(f"Downloading YouTube video: {url}")
-        
+        import base64
+        import tempfile
+
+        cookies_b64 = os.getenv("YOUTUBE_COOKIES_BASE64")
+        cookies_file = None
+
+        if cookies_b64:
+                # Write cookies to a temp file at runtime
+                cookies_bytes = base64.b64decode(cookies_b64)
+                tmp = tempfile.NamedTemporaryFile(
+                    delete=False, suffix=".txt", mode='wb'
+                )
+                tmp.write(cookies_bytes)
+                tmp.close()
+                cookies_file = tmp.name
+                logger.info("YouTube cookies loaded from env var")
+
         ydl_opts = {
-            'format': 'best[ext=mp4]/best',
-            'outtmpl': output_path,
-            'quiet': False,
-            'cookiefile': '/app/cookies.txt',  # path inside container
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            },
-        }
-        
+                'format': 'best[ext=mp4]/best',
+                'outtmpl': output_path,
+                'quiet': False,
+                'http_headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                },
+            }
+
+        if cookies_file:
+                ydl_opts['cookiefile'] = cookies_file
+
         try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
-            logger.info("Download complete.")
-            return output_path
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([url])
+                logger.info("Download complete.")
+                return output_path
         except Exception as e:
-            raise Exception(f"YouTube Download Failed: {str(e)}")
+                raise Exception(f"YouTube Download Failed: {str(e)}")
+        finally:
+                # Clean up temp cookies file
+                if cookies_file and os.path.exists(cookies_file):
+                    os.remove(cookies_file)
 
     # --- UPDATED FUNCTION: Upload Local File ---
     def upload_video(self, video_path, video_name):
