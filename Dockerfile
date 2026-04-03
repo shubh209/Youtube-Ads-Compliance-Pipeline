@@ -16,15 +16,15 @@ RUN pip install uv
 COPY pyproject.toml .
 COPY uv.lock .
 
-# Install dependencies from lockfile for reproducible builds
+# Install dependencies
 RUN uv pip install --system .
 
-# Copy source code (separate layer so dep install is cached)
+# Copy source code
 COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "backend.src.api.server:app", \
-     "--host", "0.0.0.0", \
-     "--port", "8000", \
-     "--timeout-keep-alive", "300"]
+# timeout-keep-alive 300 = 5 minutes
+# Azure Video Indexer takes 2-5 min to process — without this
+# uvicorn drops the connection before the pipeline finishes
+CMD ["uvicorn", "backend.src.api.server:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "300"]
