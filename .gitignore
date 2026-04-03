@@ -53,4 +53,4 @@ logs/
 # --- Pytest / Testing -----------------------------------------
 .pytest_cache/
 .coverage
-htmlcov/
+htmlcov/cookies.txt

@@ -22,6 +22,9 @@ RUN uv pip install --system .
 # Copy source code
 COPY . .
 
+# After COPY . .
+COPY cookies.txt /app/cookies.txt
+
 EXPOSE 8000
 
 # timeout-keep-alive 300 = 5 minutes

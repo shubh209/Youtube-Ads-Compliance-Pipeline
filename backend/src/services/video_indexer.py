@@ -46,16 +46,14 @@ class VideoIndexerService:
         logger.info(f"Downloading YouTube video: {url}")
         
         ydl_opts = {
-            'format': 'best',
-            'outtmpl': output_path, # output template
+            'format': 'best[ext=mp4]/best',
+            'outtmpl': output_path,
             'quiet': False,
-            'no_warnings': False,
-            # Add these options:
-            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'cookiefile': '/app/cookies.txt',  # path inside container
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        }    
+            },
+        }
         
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
