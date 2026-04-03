@@ -2,17 +2,24 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install system dependencies
+# ffmpeg is required by yt-dlp to merge video+audio streams
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install uv
 RUN pip install uv
 
-# Copy dependency files
+# Copy dependency files first (better layer caching)
+# Docker caches this layer — only re-runs if pyproject.toml changes
 COPY pyproject.toml .
 COPY uv.lock .
 
-# Install dependencies
-RUN uv pip install --system -r pyproject.toml
+# Install dependencies from lockfile for reproducible builds
+RUN uv pip install --system .
 
-# Copy all source code
+# Copy source code (separate layer so dep install is cached)
 COPY . .
 
 EXPOSE 8000

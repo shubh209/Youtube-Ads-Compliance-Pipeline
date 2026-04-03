@@ -1,0 +1,30 @@
+# .github/workflows/deploy.yml
+name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and push image
+        run: |
+          az acr login --name ${{ secrets.REGISTRY_NAME }}
+          docker build -t ${{ secrets.REGISTRY_NAME }}.azurecr.io/brand-guardian-api:latest .
+          docker push ${{ secrets.REGISTRY_NAME }}.azurecr.io/brand-guardian-api:latest
+
+      - name: Deploy to Container Apps
+        run: |
+          az containerapp update \
+            --name brand-guardian-api \
+            --resource-group LLM-yt \
+            --image ${{ secrets.REGISTRY_NAME }}.azurecr.io/brand-guardian-api:latest
