@@ -25,14 +25,13 @@ def _require_env(var_name: str) -> str:
 # --- NODE 1: THE INDEXER ---
 def index_video_node(state: VideoAuditState) -> Dict[str, Any]:
     """
-    Downloads YouTube video, uploads to Azure VI, and extracts insights.
+    Submits YouTube URL directly to Azure Video Indexer (no local download).
+    VI fetches the video itself — no yt-dlp, no bot detection issues.
     """
     video_url = state.get("video_url")
     video_id_input = state.get("video_id", "vid_demo")
 
     logger.info(f"--- [Node: Indexer] Processing: {video_url} ---")
-
-    local_filename = "temp_audit_video.mp4"
 
     try:
         if not video_url:
@@ -40,26 +39,18 @@ def index_video_node(state: VideoAuditState) -> Dict[str, Any]:
 
         vi_service = VideoIndexerService()
 
-        # 1. DOWNLOAD
-        if "youtube.com" in video_url or "youtu.be" in video_url:
-            local_path = vi_service.download_youtube_video(
-                video_url, output_path=local_filename
-            )
-        else:
-            raise ValueError("Please provide a valid YouTube URL for this test.")
+        # Submit URL directly to Azure Video Indexer
+        # VI downloads the video on Azure's side — no local file needed
+        azure_video_id = vi_service.index_from_url(
+            video_url=video_url,
+            video_name=video_id_input
+        )
+        logger.info(f"Submitted to VI. Azure ID: {azure_video_id}")
 
-        # 2. UPLOAD
-        azure_video_id = vi_service.upload_video(local_path, video_name=video_id_input)
-        logger.info(f"Upload Success. Azure ID: {azure_video_id}")
-
-        # 3. CLEANUP LOCAL FILE
-        if os.path.exists(local_path):
-            os.remove(local_path)
-
-        # 4. WAIT FOR PROCESSING
+        # Wait for processing (polls every 30s)
         raw_insights = vi_service.wait_for_processing(azure_video_id)
 
-        # 5. EXTRACT
+        # Extract transcript + OCR
         clean_data = vi_service.extract_data(raw_insights)
 
         logger.info("--- [Node: Indexer] Extraction Complete ---")
@@ -95,22 +86,18 @@ def audit_content_node(state: VideoAuditState) -> Dict[str, Any]:
         }
 
     try:
-        # Required env vars
-        azure_openai_endpoint = _require_env("AZURE_OPENAI_ENDPOINT")
-        azure_openai_api_key = _require_env("AZURE_OPENAI_API_KEY")
+        azure_openai_endpoint   = _require_env("AZURE_OPENAI_ENDPOINT")
+        azure_openai_api_key    = _require_env("AZURE_OPENAI_API_KEY")
         azure_openai_api_version = _require_env("AZURE_OPENAI_API_VERSION")
-        chat_deployment = _require_env("AZURE_OPENAI_CHAT_DEPLOYMENT")
-        embed_deployment = _require_env("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
-
-        azure_search_endpoint = _require_env("AZURE_SEARCH_ENDPOINT")
-        azure_search_key = _require_env("AZURE_SEARCH_API_KEY")
+        chat_deployment         = _require_env("AZURE_OPENAI_CHAT_DEPLOYMENT")
+        embed_deployment        = _require_env("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+        azure_search_endpoint   = _require_env("AZURE_SEARCH_ENDPOINT")
+        azure_search_key        = _require_env("AZURE_SEARCH_API_KEY")
         azure_search_index_name = _require_env("AZURE_SEARCH_INDEX_NAME")
 
-        logger.info(f"Chat deployment from env: {chat_deployment}")
-        logger.info(f"Embedding deployment from env: {embed_deployment}")
-        logger.info(f"Azure OpenAI endpoint from env: {azure_openai_endpoint}")
+        logger.info(f"Chat deployment: {chat_deployment}")
+        logger.info(f"Embedding deployment: {embed_deployment}")
 
-        # Initialize Clients
         llm = AzureChatOpenAI(
             azure_deployment=chat_deployment,
             azure_endpoint=azure_openai_endpoint,
@@ -133,7 +120,6 @@ def audit_content_node(state: VideoAuditState) -> Dict[str, Any]:
             embedding_function=embeddings.embed_query,
         )
 
-        # RAG Retrieval
         ocr_text = state.get("ocr_text", [])
         query_text = f"{transcript} {' '.join(ocr_text)}".strip()
 
@@ -173,16 +159,13 @@ TRANSCRIPT: {transcript}
 ON-SCREEN TEXT (OCR): {ocr_text}
 """.strip()
 
-        response = llm.invoke(
-            [
-                SystemMessage(content=system_prompt),
-                HumanMessage(content=user_message),
-            ]
-        )
+        response = llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_message),
+        ])
 
         content = response.content.strip()
 
-        # Clean markdown code block if model ignores instructions
         if "```" in content:
             match = re.search(r"```(?:json)?\s*(.*?)```", content, re.DOTALL)
             if match:
