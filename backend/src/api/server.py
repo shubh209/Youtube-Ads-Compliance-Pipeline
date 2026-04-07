@@ -15,6 +15,10 @@ setup_telemetry()
 from backend.src.graph.workflow import app as compliance_graph
 
 logging.basicConfig(level=logging.INFO)
+# Add these lines right after logging.basicConfig(level=logging.INFO)
+logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+logging.getLogger("azure.monitor").setLevel(logging.WARNING)
+logging.getLogger("azure.identity").setLevel(logging.WARNING)
 logger = logging.getLogger("api-server")
 
 # ── FastAPI app ──────────────────────────────────────────────────────────────
@@ -117,5 +121,22 @@ def debug_env():
         "AZURE_SEARCH_ENDPOINT":    os.getenv("AZURE_SEARCH_ENDPOINT", "MISSING"),
     }
 
+
+@app.get("/debug/vi-test")
+async def vi_test():
+    """Tests Video Indexer connection directly."""
+    from backend.src.services.video_indexer import VideoIndexerService
+    try:
+        vi = VideoIndexerService()
+        arm_token = vi.get_access_token()
+        vi_token = vi.get_account_token(arm_token)
+        return {
+            "arm_token": "OK",
+            "vi_token": "OK" if vi_token else "EMPTY",
+            "account_id": vi.account_id,
+            "location": vi.location,
+        }
+    except Exception as e:
+        return {"error": str(e)}
 # ── Run instructions ─────────────────────────────────────────────────────────
 # uv run uvicorn backend.src.api.server:app --reload --host 0.0.0.0 --port 8000
