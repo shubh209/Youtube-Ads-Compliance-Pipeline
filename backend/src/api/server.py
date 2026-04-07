@@ -1,3 +1,4 @@
+import os
 import uuid
 import logging
 from fastapi import FastAPI, HTTPException
@@ -103,6 +104,18 @@ def health_check():
     """Quick liveness probe — used by load balancers and monitoring."""
     return {"status": "healthy", "service": "Brand Guardian AI"}
 
+@app.get("/debug/env")
+def debug_env():
+    """Temporary endpoint to verify env vars are loaded."""
+    return {
+        "AZURE_VI_ACCOUNT_ID":      os.getenv("AZURE_VI_ACCOUNT_ID", "MISSING"),
+        "AZURE_VI_LOCATION":        os.getenv("AZURE_VI_LOCATION", "MISSING"),
+        "AZURE_VI_NAME":            os.getenv("AZURE_VI_NAME", "MISSING"),
+        "AZURE_SUBSCRIPTION_ID":    os.getenv("AZURE_SUBSCRIPTION_ID", "MISSING"),
+        "AZURE_RESOURCE_GROUP":     os.getenv("AZURE_RESOURCE_GROUP", "MISSING"),
+        "AZURE_OPENAI_ENDPOINT":    os.getenv("AZURE_OPENAI_ENDPOINT", "MISSING"),
+        "AZURE_SEARCH_ENDPOINT":    os.getenv("AZURE_SEARCH_ENDPOINT", "MISSING"),
+    }
 
 # ── Run instructions ─────────────────────────────────────────────────────────
 # uv run uvicorn backend.src.api.server:app --reload --host 0.0.0.0 --port 8000
