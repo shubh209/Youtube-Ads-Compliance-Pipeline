@@ -141,3 +141,11 @@ async def vi_test():
         return {"error": str(e)}
 # ── Run instructions ─────────────────────────────────────────────────────────
 # uv run uvicorn backend.src.api.server:app --reload --host 0.0.0.0 --port 8000
+
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Serve the frontend
+@app.get("/")
+def serve_frontend():
+    return FileResponse("index.html")
