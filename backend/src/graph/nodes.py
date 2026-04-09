@@ -9,10 +9,14 @@ from langchain_community.vectorstores import AzureSearch
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from backend.src.graph.state import VideoAuditState
-from backend.src.services.video_indexer import VideoIndexerService
+from backend.src.services.video_indexer import YouTubeTranscriptService
 
 logger = logging.getLogger("brand-guardian")
 logging.basicConfig(level=logging.INFO)
+
+logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+logging.getLogger("azure.monitor").setLevel(logging.WARNING)
+logging.getLogger("azure.identity").setLevel(logging.WARNING)
 
 
 def _require_env(var_name: str) -> str:
@@ -25,33 +29,18 @@ def _require_env(var_name: str) -> str:
 # --- NODE 1: THE INDEXER ---
 def index_video_node(state: VideoAuditState) -> Dict[str, Any]:
     """
-    Submits YouTube URL directly to Azure Video Indexer (no local download).
-    VI fetches the video itself — no yt-dlp, no bot detection issues.
+    Fetches transcript and metadata directly from YouTube Data API v3.
+    No video download, no Azure Video Indexer — fast and reliable.
     """
     video_url = state.get("video_url")
-    video_id_input = state.get("video_id", "vid_demo")
-
     logger.info(f"--- [Node: Indexer] Processing: {video_url} ---")
 
     try:
         if not video_url:
             raise ValueError("No video_url provided in state.")
 
-        vi_service = VideoIndexerService()
-
-        # Submit URL directly to Azure Video Indexer
-        # VI downloads the video on Azure's side — no local file needed
-        azure_video_id = vi_service.index_from_url(
-            video_url=video_url,
-            video_name=video_id_input
-        )
-        logger.info(f"Submitted to VI. Azure ID: {azure_video_id}")
-
-        # Wait for processing (polls every 30s)
-        raw_insights = vi_service.wait_for_processing(azure_video_id)
-
-        # Extract transcript + OCR
-        clean_data = vi_service.extract_data(raw_insights)
+        yt_service = YouTubeTranscriptService()
+        clean_data = yt_service.extract_data(video_url)
 
         logger.info("--- [Node: Indexer] Extraction Complete ---")
         return clean_data
@@ -86,14 +75,14 @@ def audit_content_node(state: VideoAuditState) -> Dict[str, Any]:
         }
 
     try:
-        azure_openai_endpoint   = _require_env("AZURE_OPENAI_ENDPOINT")
-        azure_openai_api_key    = _require_env("AZURE_OPENAI_API_KEY")
+        azure_openai_endpoint    = _require_env("AZURE_OPENAI_ENDPOINT")
+        azure_openai_api_key     = _require_env("AZURE_OPENAI_API_KEY")
         azure_openai_api_version = _require_env("AZURE_OPENAI_API_VERSION")
-        chat_deployment         = _require_env("AZURE_OPENAI_CHAT_DEPLOYMENT")
-        embed_deployment        = _require_env("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
-        azure_search_endpoint   = _require_env("AZURE_SEARCH_ENDPOINT")
-        azure_search_key        = _require_env("AZURE_SEARCH_API_KEY")
-        azure_search_index_name = _require_env("AZURE_SEARCH_INDEX_NAME")
+        chat_deployment          = _require_env("AZURE_OPENAI_CHAT_DEPLOYMENT")
+        embed_deployment         = _require_env("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+        azure_search_endpoint    = _require_env("AZURE_SEARCH_ENDPOINT")
+        azure_search_key         = _require_env("AZURE_SEARCH_API_KEY")
+        azure_search_index_name  = _require_env("AZURE_SEARCH_INDEX_NAME")
 
         logger.info(f"Chat deployment: {chat_deployment}")
         logger.info(f"Embedding deployment: {embed_deployment}")
@@ -126,15 +115,18 @@ def audit_content_node(state: VideoAuditState) -> Dict[str, Any]:
         docs = vector_store.similarity_search(query_text, k=3)
         retrieved_rules = "\n\n".join([doc.page_content for doc in docs]) if docs else ""
 
+        metadata = state.get("video_metadata", {})
+        video_title = metadata.get("title", "Unknown")
+
         system_prompt = f"""
-You are a Senior Brand Compliance Auditor.
+You are a Senior Brand Compliance Auditor specializing in YouTube advertising policy.
 
 OFFICIAL REGULATORY RULES:
 {retrieved_rules}
 
 INSTRUCTIONS:
-1. Analyze the Transcript and OCR text below.
-2. Identify ANY violations of the rules.
+1. Analyze the video transcript, description, and metadata below.
+2. Identify ANY violations of YouTube Ad Policies or FTC guidelines.
 3. Return strictly valid JSON in the following format:
 
 {{
@@ -149,14 +141,20 @@ INSTRUCTIONS:
     "final_report": "Summary of findings..."
 }}
 
+Severity levels:
+- CRITICAL: Must be fixed before ad can run
+- WARNING: Should be reviewed
+- INFO: Minor recommendation
+
 If no violations are found, set "status" to "PASS" and "compliance_results" to [].
-Do not include markdown fences.
+Do not include markdown fences or any text outside the JSON.
 """.strip()
 
         user_message = f"""
-VIDEO METADATA: {state.get('video_metadata', {})}
+VIDEO TITLE: {video_title}
+VIDEO METADATA: {metadata}
 TRANSCRIPT: {transcript}
-ON-SCREEN TEXT (OCR): {ocr_text}
+ON-SCREEN TEXT / DESCRIPTION: {ocr_text}
 """.strip()
 
         response = llm.invoke([
