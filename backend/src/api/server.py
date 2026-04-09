@@ -119,6 +119,7 @@ def debug_env():
         "AZURE_RESOURCE_GROUP":     os.getenv("AZURE_RESOURCE_GROUP", "MISSING"),
         "AZURE_OPENAI_ENDPOINT":    os.getenv("AZURE_OPENAI_ENDPOINT", "MISSING"),
         "AZURE_SEARCH_ENDPOINT":    os.getenv("AZURE_SEARCH_ENDPOINT", "MISSING"),
+        "YOUTUBE_API_KEY":          os.getenv("YOUTUBE_API_KEY", "MISSING"),
     }
 
 
